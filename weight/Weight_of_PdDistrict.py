@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-def Weight_of_PdDistirct(df, inplace=False):
+def Weight_of_PdDistrict(df, inplace=False):
     """
     :return: (df1, df2, df3),
             df1: [10, 1] the count of incidents in each PdDistrict
@@ -23,15 +23,31 @@ def Count_of_PdDistrict(df, inplace=False):
     :return: pandas.DataFrame
             df1: [10, 39] the count of each kind of incidents in each PdDistrict
     """
-    count_of_pddistrict = pd.concat([pd.get_dummies(df["Category"]), df["PdDistrict"]], axis=1).groupby("PdDistrict").agg(['sum'])
+    count_of_pddistrict = df.groupby(["PdDistrict", "Category"])["Address"].agg(['count'])
 
     return count_of_pddistrict
+
+def add_weight_pddistrict(df, weight, inplace=True):
+    assert inplace, "the inplace should be set True"
+    weight.rename(columns={'count':'weight'}, inplace=True)
+    df = df.join(weight, on='PdDistrict')
+    return df
+
+def add_weight_pddistrict_label(df, weight, inplace=True):
+    assert inplace, "the inplace should be set True"
+    weight.rename(columns={'count':'weight'}, inplace=True)
+    df = df.join(weight, on=['PdDistrict', 'Category'])
+
+    # df['weight'] = 1 / df["weight"]
+    df['weight'] = df['weight'] / df['weight'].sum() * df.shape[0]
+
+    return df
 
 if __name__ == "__main__":
 
     # 读取数据
-    df_train = pd.read_csv("train.csv/train.csv", parse_dates=['Dates'])
-    df_test = pd.read_csv("test.csv/test.csv", parse_dates=['Dates'])
+    df_train = pd.read_csv("../train.csv", parse_dates=['Dates'])
+    df_test = pd.read_csv("../test.csv", parse_dates=['Dates'])
 
     # 设置index
     df_train.index = np.arange(df_train.shape[0])
@@ -40,10 +56,10 @@ if __name__ == "__main__":
     print("train set size", df_train.shape)
     print("test set size", df_test.shape)
 
-    df1, df2, df3 = Weight_of_PdDistirct(df_train)
-    print(df1)
-    print(df2)
-    print(df3)
+    df1, df2, df3 = Weight_of_PdDistrict(df_train)
+    tmp = add_weight_pddistrict(df_train, df3)
+    print(tmp.head(10))
 
     df4 = Count_of_PdDistrict(df_train)
-    print(df4)
+    tmp = add_weight_pddistrict_label(df_train, df4)
+    print(tmp.head(10))
