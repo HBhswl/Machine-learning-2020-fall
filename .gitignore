@@ -1,0 +1,6 @@
+syn/test.csv
+syn/train.csv
+syn/demo.csv
+syn/p_train.csv
+syn/p_train_std.csv
+sfcrime2.py
