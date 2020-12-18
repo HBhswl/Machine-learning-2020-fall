@@ -1,11 +1,23 @@
 import numpy as np
 import pandas as pd
 
+from sklearn.impute import SimpleImputer
+
 # 删除掉训练集中的异常数据，并且将训练集和测试集中的经纬度进行均一化操作
 def remove_outlier_xy(df, inplace=True):
     assert inplace, "to remove outlier, the inplace should be set True!"
-    df = df[df["Y"] < 80]
+    # df = df[df["Y"] < 80]
+    df.replace({'X': -120.5, 'Y': 90.0}, np.NaN, inplace=True)
     return df
+
+def fill_missing_xy(train_df, test_df):
+    imp = SimpleImputer(strategy='mean')
+    for district in train_df['PdDistrict'].unique():
+        train_df.loc[train_df['PdDistrict'] == district, ['X', 'Y']] = \
+            imp.fit_transform(train_df.loc[train_df['PdDistrict'] == district, ['X', 'Y']])
+        test_df.loc[test_df['PdDistrict'] == district, ['X', 'Y']] = \
+            imp.transform(test_df.loc[test_df['PdDistrict'] == district, ['X', 'Y']])
+    return train_df, test_df
 
 # 对xy进行标准化
 def norm_xy(df1, df2, inplace=True):

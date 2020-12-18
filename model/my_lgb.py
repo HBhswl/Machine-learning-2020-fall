@@ -41,7 +41,7 @@ def test_one_param(df, label, params):
   
     return iterations
 
-def generate_result(df_train, label_train, df_test, params, iterations, using_weight=True):
+def generate_result(df_train, label_train, df_test, params, iterations, using_weight=False):
     result = []
 
     kf = KFold(n_splits=5, shuffle=True, random_state=0)
@@ -74,7 +74,7 @@ def save_results(keys, df_test, y_pred, df_test_ori):
     res = pd.concat([df_test_ori, y_pred], axis=1, join="outer")
     res = res.fillna(0)
     res = res[keys]
-    res.to_csv("result-weight-2.csv", index=True, index_label="Id")
+    res.to_csv("result-base.csv", index=True, index_label="Id")
 
 def my_lightgbm_model(df_train, df_test, df_test_ori):
     keys, df_train = encoding(df_train)
@@ -94,25 +94,25 @@ def my_lightgbm_model(df_train, df_test, df_test_ori):
         'objective' : 'multiclass',
         'num_class' : 39,
         'boosting_type' : 'gbdt',
-        'learning_rate' : 0.01,
+        'learning_rate' : 0.056,
 
         # 'num_iterations': 200,
 
         'metric': {'multi_logloss'},
     
-        'num_leaves' : 31,
-        'max_depth': 6,
-        'max_bin' :  256,
-        'min_data_in_leaf': 100,
+        'num_leaves' : 96,
+        # 'max_depth': 6,
+        'max_bin' :  488,
+        'min_data_in_leaf': 362,
 
-        'feature_fraction' : 0.9,
-        'bagging_fraction' : 0.9,
-        'bagging_freq': 0,
-        'lambda_l1': 1,
-        'lambda_l2': 1,
-        'min_split_gain': 0.0,
+        # 'feature_fraction' : 0.9,
+        # 'bagging_fraction' : 0.9,
+        # 'bagging_freq': 0,
+        # 'lambda_l1': 1,
+        # 'lambda_l2': 1,
+        # 'min_split_gain': 0.0,
     
-        'max_position':10,
+        # 'max_position':10,
         'num_threads': 20,
         'random_state': 0,
         'seed': 0,
@@ -122,6 +122,6 @@ def my_lightgbm_model(df_train, df_test, df_test_ori):
     }
 
     # iterations = test_one_param(X_train, y_train, params)
-    iterations = [340] * 5
+    iterations = [200] * 5
     y_pred = generate_result(X_train, y_train, X_test, params, iterations)
     save_results(keys, X_test, y_pred, df_test_ori)
